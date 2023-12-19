@@ -25,6 +25,14 @@ typedef NS_ENUM(NSUInteger, FLAAuthResult) {
   FLAAuthResultErrorNotEnrolled = 3,
   /// No passcode is set.
   FLAAuthResultErrorPasscodeNotSet = 4,
+
+  FLAAuthResultCallbackSetting = 5,
+
+  FLAAuthResultPermanentLockedOut = 6,
+
+  FLAAuthResultUserFallback = 7,
+
+  FLAAuthResultUserCancel = 8,
 };
 
 /// Pigeon equivalent of the subset of BiometricType used by iOS.

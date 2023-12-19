@@ -10,10 +10,14 @@ import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +29,16 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.concurrent.Executor;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 /**
  * Authenticates the user with biometrics and sends corresponding response back to Flutter.
@@ -75,9 +88,14 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
             .setSubtitle(strings.getBiometricHint())
             .setConfirmationRequired(options.getSensitiveTransaction());
 
-    int allowedAuthenticators =
-        BiometricManager.Authenticators.BIOMETRIC_WEAK
-            | BiometricManager.Authenticators.BIOMETRIC_STRONG;
+    // *************************** GTCXM-153 START ***********************
+    // [Spike] Local_auth show wrong error code in Android 13
+    // *******************************************************************
+    int allowedAuthenticators = isSmallerAndroid11() ?
+            BiometricManager.Authenticators.BIOMETRIC_WEAK
+                    | BiometricManager.Authenticators.BIOMETRIC_STRONG
+            : BiometricManager.Authenticators.BIOMETRIC_STRONG;
+    // *************************** GTCXM-153 END ***********************
 
     if (allowCredentials) {
       allowedAuthenticators |= BiometricManager.Authenticators.DEVICE_CREDENTIAL;
@@ -97,7 +115,12 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
       activity.getApplication().registerActivityLifecycleCallbacks(this);
     }
     biometricPrompt = new BiometricPrompt(activity, uiThreadExecutor, this);
-    biometricPrompt.authenticate(promptInfo);
+
+    // *************************** GTCXM-153 START ***********************
+    // [Spike] Local_auth show wrong error code in Android 13
+    // *******************************************************************
+    showBiometricPrompt(biometricPrompt, promptInfo);
+    // *************************** GTCXM-153 END ***********************
   }
 
   /** Cancels the biometric authentication. */
@@ -191,7 +214,11 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
       final BiometricPrompt prompt = new BiometricPrompt(activity, uiThreadExecutor, this);
       // When activity is resuming, we cannot show the prompt right away. We need to post it to the
       // UI queue.
-      uiThreadExecutor.handler.post(() -> prompt.authenticate(promptInfo));
+      // *************************** GTCXM-153 START ***********************
+      // [Spike] Local_auth show wrong error code in Android 13
+      // *******************************************************************
+      uiThreadExecutor.handler.post(() -> showBiometricPrompt(prompt, promptInfo));
+      // *************************** GTCXM-153 END ***********************
     }
   }
 
@@ -216,9 +243,11 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
     Context context = new ContextThemeWrapper(activity, R.style.AlertDialogCustom);
     OnClickListener goToSettingHandler =
         (dialog, which) -> {
-          completionHandler.complete(Messages.AuthResult.FAILURE);
-          stop();
-          activity.startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS));
+          // *************************** GTCXM-152 START ***********************
+          // [Spike] Trigger callback when go to Device Setting
+          // *******************************************************************
+          activity.startActivityForResult(new Intent(Settings.ACTION_SECURITY_SETTINGS),7);
+          // *************************** GTCXM-152 END ***********************
         };
     OnClickListener cancelHandler =
         (dialog, which) -> {
@@ -270,4 +299,37 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
       handler.post(command);
     }
   }
+
+  /***************************************** GTCXM-152 START ****************************************
+   * [Spike] Trigger callback when go to Device Setting
+   **************************************************************************************************/
+  void returnCallback() {
+    completionHandler.complete(Messages.AuthResult.CALLBACK_SETTING);
+    stop();
+  }
+  /***************************************** GTCXM-152 END *****************************************/
+
+  /***************************************** GTCXM-153 START ****************************************
+   * [Spike] Local_auth show wrong error code in Android 13
+   **************************************************************************************************/
+
+  private void showBiometricPrompt(BiometricPrompt prompt, BiometricPrompt.PromptInfo info) {
+    try {
+      // fix issue
+      if (isSmallerAndroid11()) {
+        prompt.authenticate(info);
+      } else {
+        BiometricPrompt.CryptoObject cryptoObject = new BiometricPrompt.CryptoObject(KeyGenerationHelper.getEncryptCipher(KeyGenerationHelper.createKey()));
+        prompt.authenticate(info, cryptoObject);
+      }
+    } catch (Exception e) {
+      Log.e("AuthenticationHelper", e.toString());
+    }
+  }
+
+  private Boolean isSmallerAndroid11() {
+    return Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q;
+  }
+
+  /***************************************** GTCXM-153 END *****************************************/
 }

@@ -154,6 +154,8 @@ typedef void (^FLAAuthCompletion)(FLAAuthResultDetails *_Nullable, FlutterError 
 
 #pragma mark Private Methods
 
+FLAAuthCompletion _completionHandler = nil;
+
 - (void)showAlertWithMessage:(NSString *)message
           dismissButtonTitle:(NSString *)dismissButtonTitle
      openSettingsButtonTitle:(NSString *)openSettingsButtonTitle
@@ -177,10 +179,15 @@ typedef void (^FLAAuthCompletion)(FLAAuthResultDetails *_Nullable, FlutterError 
                   style:UIAlertActionStyleDefault
                 handler:^(UIAlertAction *action) {
                   NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+          // *************************** GTCXM-152 START ***********************
+          // [Spike] Trigger callback when go to Device Setting
+          // *******************************************************************
                   [[UIApplication sharedApplication] openURL:url
                                                      options:@{}
-                                           completionHandler:NULL];
-                  [self handleSucceeded:NO withCompletion:completion];
+                                           completionHandler:^(BOOL success) {
+                      _completionHandler = completion;
+                  }];
+          // *************************** GTCXM-152 END ***********************
                 }];
     [alert addAction:additionalAction];
   }
@@ -234,6 +241,9 @@ typedef void (^FLAAuthCompletion)(FLAAuthResultDetails *_Nullable, FlutterError 
             strings:(FLAAuthStrings *)strings
          completion:(nonnull FLAAuthCompletion)completion {
   FLAAuthResult result = FLAAuthResultErrorNotAvailable;
+  // *************************** GTCXM-152 START ***********************
+  // [Spike] Trigger callback when go to Device Setting
+  // *******************************************************************
   switch (authError.code) {
     case LAErrorPasscodeNotSet:
     case LAErrorBiometryNotEnrolled:
@@ -243,26 +253,71 @@ typedef void (^FLAAuthCompletion)(FLAAuthResultDetails *_Nullable, FlutterError 
             openSettingsButtonTitle:strings.goToSettingsButton
                          completion:completion];
         return;
+      } else {
+          result = authError.code == LAErrorPasscodeNotSet ? FLAAuthResultErrorPasscodeNotSet
+                                                           : FLAAuthResultErrorNotEnrolled;
+          completion([FLAAuthResultDetails makeWithResult:result
+                      errorMessage:authError.localizedDescription
+                      errorDetails:authError.domain],
+          nil);
       }
-      result = authError.code == LAErrorPasscodeNotSet ? FLAAuthResultErrorPasscodeNotSet
-                                                       : FLAAuthResultErrorNotEnrolled;
+     
       break;
     case LAErrorBiometryLockout:
       [self showAlertWithMessage:strings.lockOut
                dismissButtonTitle:strings.cancelButton
           openSettingsButtonTitle:nil
-                       completion:completion];
+                        completion:completion];
+
+          result = FLAAuthResultPermanentLockedOut;
+
+          completion([FLAAuthResultDetails makeWithResult:result
+                      errorMessage:authError.localizedDescription
+                      errorDetails:authError.domain],
+          nil);
       return;
+    case LAErrorUserFallback:
+          result = FLAAuthResultUserFallback;
+
+          completion([FLAAuthResultDetails makeWithResult:result
+                      errorMessage:authError.localizedDescription
+                      errorDetails:authError.domain],
+          nil);
+      break;
+    case LAErrorUserCancel:
+      result = FLAAuthResultUserCancel;
+
+      completion([FLAAuthResultDetails makeWithResult:result
+                  errorMessage:authError.localizedDescription
+                  errorDetails:authError.domain],
+      nil);
+      break;
+    default:
+          completion([FLAAuthResultDetails makeWithResult:result
+                  errorMessage:authError.localizedDescription
+                  errorDetails:authError.domain],
+          nil);
+      break;
   }
-  completion([FLAAuthResultDetails makeWithResult:result
-                                     errorMessage:authError.localizedDescription
-                                     errorDetails:authError.domain],
-             nil);
+  // *************************** GTCXM-152 END ***********************
 }
 
 #pragma mark - AppDelegate
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
+  // *************************** GTCXM-152 START ***********************
+  // [Spike] Trigger callback when go to Device Setting
+  // *******************************************************************
+  NSLog(@"App resume");
+  if (_completionHandler != nil) {
+        _completionHandler(
+        [FLAAuthResultDetails makeWithResult:FLAAuthResultCallbackSetting
+                                errorMessage:nil
+                                errorDetails:nil],
+        nil);
+      _completionHandler = nil;
+  }
+  // *************************** GTCXM-152 END ***********************
   if (self.lastCallState != nil) {
     [self authenticateWithOptions:_lastCallState.options
                           strings:_lastCallState.strings
