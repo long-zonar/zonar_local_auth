@@ -12,6 +12,8 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.biometric.BiometricManager;
@@ -31,6 +33,8 @@ import io.flutter.plugins.localauth.Messages.AuthResultWrapper;
 import io.flutter.plugins.localauth.Messages.AuthStrings;
 import io.flutter.plugins.localauth.Messages.LocalAuthApi;
 import io.flutter.plugins.localauth.Messages.Result;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,6 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class LocalAuthPlugin implements FlutterPlugin, ActivityAware, LocalAuthApi {
   private static final int LOCK_REQUEST_CODE = 221;
+  private static final int REQUEST_SETTING_CALLBACK = 7;
   private Activity activity;
   private AuthenticationHelper authHelper;
 
@@ -56,6 +61,13 @@ public class LocalAuthPlugin implements FlutterPlugin, ActivityAware, LocalAuthA
       new PluginRegistry.ActivityResultListener() {
         @Override
         public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+          // *************************** GTCXM-152 START ***********************
+          // [Spike] Trigger callback when go to Device Setting
+          // *******************************************************************
+          if (requestCode == REQUEST_SETTING_CALLBACK) {
+            authHelper.returnCallback();
+          }
+          // *************************** GTCXM-152 END ***********************
           if (requestCode == LOCK_REQUEST_CODE) {
             if (resultCode == RESULT_OK && lockRequestResult != null) {
               onAuthenticationCompleted(lockRequestResult, AuthResult.SUCCESS);
