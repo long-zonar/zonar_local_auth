@@ -40,8 +40,6 @@ enum AuthResult {
   /// The user is locked out until they log in another way due to too many
   /// failed attempts.
   errorLockedOutPermanently,
-
-  callbackSetting,  
 }
 
 /// Pigeon equivalent of the subset of BiometricType used by Android.

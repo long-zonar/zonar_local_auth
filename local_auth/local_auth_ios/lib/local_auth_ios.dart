@@ -59,11 +59,6 @@ class LocalAuthIOS extends LocalAuthPlatform {
       // *************************** GTCXM-151 START ***********************
       // Handle other exception cases
       // *******************************************************************
-      case AuthResult.callbackSetting:
-        throw PlatformException(
-            code: 'CallbackSetting',
-            message: "callbackSetting",
-            details: "callbackSetting");
       case AuthResult.iOSLockedOut:
         throw PlatformException(
             code: 'iOSLockedOut',

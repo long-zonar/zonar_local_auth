@@ -65,7 +65,11 @@ public class LocalAuthPlugin implements FlutterPlugin, ActivityAware, LocalAuthA
           // [Spike] Trigger callback when go to Device Setting
           // *******************************************************************
           if (requestCode == REQUEST_SETTING_CALLBACK) {
-            authHelper.returnCallback();
+            stopAuthentication();
+            List<AuthClassificationWrapper> enrolledBiometrics = getEnrolledBiometrics();
+            if (enrolledBiometrics.isEmpty()) {
+              authenticate(localAuthOptions, localAuthStrings, localAuthResult);
+            }
           }
           // *************************** GTCXM-152 END ***********************
           if (requestCode == LOCK_REQUEST_CODE) {
@@ -140,11 +144,19 @@ public class LocalAuthPlugin implements FlutterPlugin, ActivityAware, LocalAuthA
       return false;
     }
   }
+  private AuthOptions localAuthOptions;
+  private AuthStrings localAuthStrings;
+  private Result<AuthResultWrapper> localAuthResult;
 
   public void authenticate(
       @NonNull AuthOptions options,
       @NonNull AuthStrings strings,
       @NonNull Result<AuthResultWrapper> result) {
+
+    localAuthOptions = options;
+    localAuthStrings = strings;
+    localAuthResult = result;
+
     if (authInProgress.get()) {
       result.success(
           new AuthResultWrapper.Builder().setValue(AuthResult.ERROR_ALREADY_IN_PROGRESS).build());
