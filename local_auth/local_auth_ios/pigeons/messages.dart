@@ -56,8 +56,6 @@ enum AuthResult {
   // *************************** GTCXM-151 START ***********************
   // Handle other exception cases
   // *******************************************************************
-  callbackSetting,
-
   iOSLockedOut,
 
   errorUserFallback,

@@ -70,8 +70,6 @@ enum AuthResult {
   /// The user is locked out until they log in another way due to too many
   /// failed attempts.
   errorLockedOutPermanently,
-
-  callbackSetting,  
 }
 
 class AuthOptions {

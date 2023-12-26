@@ -77,10 +77,18 @@ typedef void (^FLAAuthCompletion)(FLAAuthResultDetails *_Nullable, FlutterError 
 
 #pragma mark FLALocalAuthApi
 
+FLAAuthOptions *flaOptions = nil;
+FLAAuthStrings *flaStrings = nil;
+FLAAuthCompletion _completionHandler = nil;
+
 - (void)authenticateWithOptions:(nonnull FLAAuthOptions *)options
                         strings:(nonnull FLAAuthStrings *)strings
                      completion:(nonnull void (^)(FLAAuthResultDetails *_Nullable,
                                                   FlutterError *_Nullable))completion {
+
+  flaOptions = options;
+  flaStrings = strings;
+
   LAContext *context = [self.authContextFactory createAuthContext];
   NSError *authError = nil;
   self.lastCallState = nil;
@@ -153,8 +161,6 @@ typedef void (^FLAAuthCompletion)(FLAAuthResultDetails *_Nullable, FlutterError 
 }
 
 #pragma mark Private Methods
-
-FLAAuthCompletion _completionHandler = nil;
 
 - (void)showAlertWithMessage:(NSString *)message
           dismissButtonTitle:(NSString *)dismissButtonTitle
@@ -310,11 +316,9 @@ FLAAuthCompletion _completionHandler = nil;
   // *******************************************************************
   NSLog(@"App resume");
   if (_completionHandler != nil) {
-        _completionHandler(
-        [FLAAuthResultDetails makeWithResult:FLAAuthResultCallbackSetting
-                                errorMessage:nil
-                                errorDetails:nil],
-        nil);
+           [self authenticateWithOptions:flaOptions
+                          strings:flaStrings
+                       completion:_completionHandler];
       _completionHandler = nil;
   }
   // *************************** GTCXM-152 END ***********************

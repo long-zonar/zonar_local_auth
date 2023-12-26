@@ -300,15 +300,6 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
     }
   }
 
-  /***************************************** GTCXM-152 START ****************************************
-   * [Spike] Trigger callback when go to Device Setting
-   **************************************************************************************************/
-  void returnCallback() {
-    completionHandler.complete(Messages.AuthResult.CALLBACK_SETTING);
-    stop();
-  }
-  /***************************************** GTCXM-152 END *****************************************/
-
   /***************************************** GTCXM-153 START ****************************************
    * [Spike] Local_auth show wrong error code in Android 13
    **************************************************************************************************/
