@@ -77,17 +77,25 @@ typedef void (^FLAAuthCompletion)(FLAAuthResultDetails *_Nullable, FlutterError 
 
 #pragma mark FLALocalAuthApi
 
+
+// *************************** GTCXM-197 START ***********************
+// Update GoToSettings flow
+// *******************************************************************
 FLAAuthOptions *flaOptions = nil;
 FLAAuthStrings *flaStrings = nil;
 FLAAuthCompletion _completionHandler = nil;
+// *************************** GTCXM-197 END ***********************
 
 - (void)authenticateWithOptions:(nonnull FLAAuthOptions *)options
                         strings:(nonnull FLAAuthStrings *)strings
                      completion:(nonnull void (^)(FLAAuthResultDetails *_Nullable,
                                                   FlutterError *_Nullable))completion {
-
+  // *************************** GTCXM-197 START ***********************
+  // Update GoToSettings flow
+  // *******************************************************************
   flaOptions = options;
   flaStrings = strings;
+  // *************************** GTCXM-197 END ***********************
 
   LAContext *context = [self.authContextFactory createAuthContext];
   NSError *authError = nil;
@@ -273,7 +281,7 @@ FLAAuthCompletion _completionHandler = nil;
       [self showAlertWithMessage:strings.lockOut
                dismissButtonTitle:strings.cancelButton
           openSettingsButtonTitle:nil
-                        completion:completion];
+                       completion:completion];
 
           result = FLAAuthResultPermanentLockedOut;
 
@@ -289,6 +297,13 @@ FLAAuthCompletion _completionHandler = nil;
                       errorMessage:authError.localizedDescription
                       errorDetails:authError.domain],
           nil);
+      break;
+    case LAErrorAuthenticationFailed:
+          result = FLAAuthResultAuthenticationFailed;
+          completion([FLAAuthResultDetails makeWithResult:result
+                      errorMessage:authError.localizedDescription
+                      errorDetails:authError.domain],
+          nil);                                
       break;
     case LAErrorUserCancel:
       result = FLAAuthResultUserCancel;

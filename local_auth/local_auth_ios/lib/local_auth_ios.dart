@@ -73,7 +73,12 @@ class LocalAuthIOS extends LocalAuthPlatform {
         throw PlatformException(
             code: 'ErrorUserCancel',
             message: "errorUserCancel",
-            details: "errorUserCancel");  
+            details: "errorUserCancel");
+      case AuthResult.authenticationFailed:
+        throw PlatformException(
+            code: 'ErrorAuthenticationFailed',
+            message: "errorAuthenticationFailed",
+            details: "errorAuthenticationFailed");              
       // *************************** GTCXM-151 END ***********************
       case AuthResult.errorNotEnrolled:
         throw PlatformException(

@@ -61,6 +61,8 @@ enum AuthResult {
   errorUserFallback,
 
   errorUserCancel,
+
+  authenticationFailed,
   // *************************** GTCXM-151 END ***********************
 }
 

@@ -144,18 +144,27 @@ public class LocalAuthPlugin implements FlutterPlugin, ActivityAware, LocalAuthA
       return false;
     }
   }
+
+  // *************************** GTCXM-197 START ***********************
+  // Update GoToSettings flow
+  // *******************************************************************
   private AuthOptions localAuthOptions;
   private AuthStrings localAuthStrings;
   private Result<AuthResultWrapper> localAuthResult;
+  // *************************** GTCXM-197 END ***********************
 
   public void authenticate(
       @NonNull AuthOptions options,
       @NonNull AuthStrings strings,
       @NonNull Result<AuthResultWrapper> result) {
 
+    // *************************** GTCXM-197 START ***********************
+    // Update GoToSettings flow
+    // *******************************************************************    
     localAuthOptions = options;
     localAuthStrings = strings;
     localAuthResult = result;
+    // *************************** GTCXM-197 END ***********************
 
     if (authInProgress.get()) {
       result.success(

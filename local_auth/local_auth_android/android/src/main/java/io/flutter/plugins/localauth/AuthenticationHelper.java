@@ -10,14 +10,10 @@ import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,16 +25,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.concurrent.Executor;
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 
 /**
  * Authenticates the user with biometrics and sends corresponding response back to Flutter.
@@ -89,8 +76,8 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
             .setConfirmationRequired(options.getSensitiveTransaction());
 
     int allowedAuthenticators =
-            BiometricManager.Authenticators.BIOMETRIC_WEAK
-                    | BiometricManager.Authenticators.BIOMETRIC_STRONG;
+        BiometricManager.Authenticators.BIOMETRIC_WEAK
+            | BiometricManager.Authenticators.BIOMETRIC_STRONG;
 
     if (allowCredentials) {
       allowedAuthenticators |= BiometricManager.Authenticators.DEVICE_CREDENTIAL;
