@@ -88,14 +88,9 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
             .setSubtitle(strings.getBiometricHint())
             .setConfirmationRequired(options.getSensitiveTransaction());
 
-    // *************************** GTCXM-153 START ***********************
-    // [Spike] Local_auth show wrong error code in Android 13
-    // *******************************************************************
-    int allowedAuthenticators = isSmallerAndroid11() ?
+    int allowedAuthenticators =
             BiometricManager.Authenticators.BIOMETRIC_WEAK
-                    | BiometricManager.Authenticators.BIOMETRIC_STRONG
-            : BiometricManager.Authenticators.BIOMETRIC_STRONG;
-    // *************************** GTCXM-153 END ***********************
+                    | BiometricManager.Authenticators.BIOMETRIC_STRONG;
 
     if (allowCredentials) {
       allowedAuthenticators |= BiometricManager.Authenticators.DEVICE_CREDENTIAL;
@@ -115,12 +110,7 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
       activity.getApplication().registerActivityLifecycleCallbacks(this);
     }
     biometricPrompt = new BiometricPrompt(activity, uiThreadExecutor, this);
-
-    // *************************** GTCXM-153 START ***********************
-    // [Spike] Local_auth show wrong error code in Android 13
-    // *******************************************************************
-    showBiometricPrompt(biometricPrompt, promptInfo);
-    // *************************** GTCXM-153 END ***********************
+    biometricPrompt.authenticate(promptInfo);
   }
 
   /** Cancels the biometric authentication. */
@@ -214,11 +204,7 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
       final BiometricPrompt prompt = new BiometricPrompt(activity, uiThreadExecutor, this);
       // When activity is resuming, we cannot show the prompt right away. We need to post it to the
       // UI queue.
-      // *************************** GTCXM-153 START ***********************
-      // [Spike] Local_auth show wrong error code in Android 13
-      // *******************************************************************
-      uiThreadExecutor.handler.post(() -> showBiometricPrompt(prompt, promptInfo));
-      // *************************** GTCXM-153 END ***********************
+      uiThreadExecutor.handler.post(() -> prompt.authenticate(promptInfo));
     }
   }
 
@@ -299,28 +285,4 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
       handler.post(command);
     }
   }
-
-  /***************************************** GTCXM-153 START ****************************************
-   * [Spike] Local_auth show wrong error code in Android 13
-   **************************************************************************************************/
-
-  private void showBiometricPrompt(BiometricPrompt prompt, BiometricPrompt.PromptInfo info) {
-    try {
-      // fix issue
-      if (isSmallerAndroid11()) {
-        prompt.authenticate(info);
-      } else {
-        BiometricPrompt.CryptoObject cryptoObject = new BiometricPrompt.CryptoObject(KeyGenerationHelper.getEncryptCipher(KeyGenerationHelper.createKey()));
-        prompt.authenticate(info, cryptoObject);
-      }
-    } catch (Exception e) {
-      Log.e("AuthenticationHelper", e.toString());
-    }
-  }
-
-  private Boolean isSmallerAndroid11() {
-    return Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q;
-  }
-
-  /***************************************** GTCXM-153 END *****************************************/
 }
