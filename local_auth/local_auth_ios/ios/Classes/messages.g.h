@@ -31,6 +31,8 @@ typedef NS_ENUM(NSUInteger, FLAAuthResult) {
   FLAAuthResultUserFallback = 6,
 
   FLAAuthResultUserCancel = 7,
+
+  FLAAuthResultAuthenticationFailed = 8,
 };
 
 /// Pigeon equivalent of the subset of BiometricType used by iOS.

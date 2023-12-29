@@ -33,6 +33,8 @@ enum AuthResult {
   errorUserFallback,
 
   errorUserCancel,
+
+  authenticationFailed,
 }
 
 /// Pigeon equivalent of the subset of BiometricType used by iOS.

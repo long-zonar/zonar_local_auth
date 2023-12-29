@@ -290,6 +290,13 @@ FLAAuthCompletion _completionHandler = nil;
                       errorDetails:authError.domain],
           nil);
       break;
+    case LAErrorAuthenticationFailed:
+          result = FLAAuthResultAuthenticationFailed;
+          completion([FLAAuthResultDetails makeWithResult:result
+                      errorMessage:authError.localizedDescription
+                      errorDetails:authError.domain],
+          nil);                                
+      break;
     case LAErrorUserCancel:
       result = FLAAuthResultUserCancel;
 
