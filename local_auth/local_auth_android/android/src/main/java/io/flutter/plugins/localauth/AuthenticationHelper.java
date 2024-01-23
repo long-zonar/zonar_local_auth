@@ -216,9 +216,11 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
     Context context = new ContextThemeWrapper(activity, R.style.AlertDialogCustom);
     OnClickListener goToSettingHandler =
         (dialog, which) -> {
-          completionHandler.complete(Messages.AuthResult.FAILURE);
-          stop();
-          activity.startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS));
+          // *************************** GTCXM-152 START ***********************
+          // [Spike] Trigger callback when go to Device Setting
+          // *******************************************************************
+          activity.startActivityForResult(new Intent(Settings.ACTION_SECURITY_SETTINGS),7);
+          // *************************** GTCXM-152 END ***********************
         };
     OnClickListener cancelHandler =
         (dialog, which) -> {

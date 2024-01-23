@@ -56,6 +56,30 @@ class LocalAuthIOS extends LocalAuthPlatform {
             code: 'NotAvailable',
             message: resultDetails.errorMessage,
             details: resultDetails.errorDetails);
+      // *************************** GTCXM-151 START ***********************
+      // Handle other exception cases
+      // *******************************************************************
+      case AuthResult.iOSLockedOut:
+        throw PlatformException(
+            code: 'iOSLockedOut',
+            message: "iOSLockedOut",
+            details: "iOSLockedOut");
+      case AuthResult.errorUserFallback:
+        throw PlatformException(
+            code: 'ErrorUserFallback',
+            message: "errorUserFallback",
+            details: "errorUserFallback");  
+      case AuthResult.errorUserCancel:
+        throw PlatformException(
+            code: 'ErrorUserCancel',
+            message: "errorUserCancel",
+            details: "errorUserCancel");
+      case AuthResult.authenticationFailed:
+        throw PlatformException(
+            code: 'ErrorAuthenticationFailed',
+            message: "errorAuthenticationFailed",
+            details: "errorAuthenticationFailed");              
+      // *************************** GTCXM-151 END ***********************
       case AuthResult.errorNotEnrolled:
         throw PlatformException(
             code: 'NotEnrolled',

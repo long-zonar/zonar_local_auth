@@ -27,6 +27,18 @@ enum AuthResult {
 
   /// No passcode is set.
   errorPasscodeNotSet,
+
+  // *************************** GTCXM-197 START ***********************
+  // Update GoToSettings flow
+  // *******************************************************************
+  iOSLockedOut,
+
+  errorUserFallback,
+
+  errorUserCancel,
+
+  authenticationFailed,
+  // *************************** GTCXM-197 END ***********************
 }
 
 /// Pigeon equivalent of the subset of BiometricType used by iOS.
