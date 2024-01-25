@@ -141,6 +141,11 @@ class AuthenticationHelper extends BiometricPrompt.AuthenticationCallback
         break;
       case BiometricPrompt.ERROR_HW_UNAVAILABLE:
       case BiometricPrompt.ERROR_HW_NOT_PRESENT:
+        if (useErrorDialogs) {
+          showGoToSettingsDialog(
+              strings.getBiometricRequiredTitle(), strings.getGoToSettingsDescription());
+          return;
+        }        
         completionHandler.complete(Messages.AuthResult.ERROR_NOT_AVAILABLE);
         break;
       case BiometricPrompt.ERROR_LOCKOUT:
